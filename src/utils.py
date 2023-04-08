@@ -51,15 +51,15 @@ def make_path(path: Path) -> Path:
     return path
 
 
-
 def save_colormap(tensor: torch.Tensor, path: Path):
-    Image.fromarray((cm.seismic(tensor.cpu().numpy())[:, :, :3] * 255).astype(np.uint8)).save(path)
-
+    Image.fromarray(
+        (cm.seismic(tensor.cpu().numpy())[:, :, :3] * 255).astype(np.uint8)
+    ).save(path)
 
 
 def seed_everything(seed):
     random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -73,7 +73,7 @@ def smooth_image(self, img: torch.Tensor, sigma: float) -> torch.Tensor:
     return img
 
 
-def get_nonzero_region(mask:torch.Tensor):
+def get_nonzero_region(mask: torch.Tensor):
     # Get the indices of the non-zero elements
     nz_indices = mask.nonzero()
     # Get the minimum and maximum indices along each dimension
@@ -97,7 +97,7 @@ def get_nonzero_region(mask:torch.Tensor):
 def gaussian_fn(M, std):
     n = torch.arange(0, M) - (M - 1.0) / 2.0
     sig2 = 2 * std * std
-    w = torch.exp(-n ** 2 / sig2)
+    w = torch.exp(-(n**2) / sig2)
     return w
 
 
@@ -107,16 +107,22 @@ def gkern(kernlen=256, std=128):
     gkern2d = torch.outer(gkern1d, gkern1d)
     return gkern2d
 
-def gaussian_blur(image:torch.Tensor, kernel_size:int, std:int) -> torch.Tensor:
+
+def gaussian_blur(image: torch.Tensor, kernel_size: int, std: int) -> torch.Tensor:
     gaussian_filter = gkern(kernel_size, std=std)
     gaussian_filter /= gaussian_filter.sum()
 
-    image = F.conv2d(image,
-                                          gaussian_filter.unsqueeze(0).unsqueeze(0).cuda(), padding=kernel_size // 2)
+    image = F.conv2d(
+        image,
+        gaussian_filter.unsqueeze(0).unsqueeze(0).cuda(),
+        padding=kernel_size // 2,
+    )
     return image
 
-def color_with_shade(color: List[float],z_normals:torch.Tensor,light_coef=0.7):
-    normals_with_light = (light_coef + (1 - light_coef) * z_normals.detach())
-    shaded_color = torch.tensor(color).view(1, 3, 1, 1).to(
-        z_normals.device) * normals_with_light
+
+def color_with_shade(color: List[float], z_normals: torch.Tensor, light_coef=0.7):
+    normals_with_light = light_coef + (1 - light_coef) * z_normals.detach()
+    shaded_color = (
+        torch.tensor(color).view(1, 3, 1, 1).to(z_normals.device) * normals_with_light
+    )
     return shaded_color

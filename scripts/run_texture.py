@@ -1,3 +1,7 @@
+import sys
+
+sys.path.append("..")
+
 import pyrallis
 
 from src.configs.train_config import TrainConfig

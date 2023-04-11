@@ -362,8 +362,6 @@ class StableDiffusion(nn.Module):
                         )
                         intermediate_results.append(image)
 
-                    breakpoint()
-
                     latents = self.scheduler.step(noise_pred, t, latents)["prev_sample"]
 
             return latents
